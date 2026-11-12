@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Afflictions>
+  <!-- 过载麻痹（自定义症状）
+       type="paralysis" → 引擎判据：只要角色身上存在任何 type="paralysis" 的症状即 IsParalyzed=true。
+       limbspecific="true" → 允许被"直击命中部位"施加（false 的话挂到肢体上会被丢弃）。
+       绕开的原版限制：
+         1) 10~99 区间每秒 +4 自动恶化
+         2) 99~100 区间对"非人 + 血量>1000"目标每秒 5% 强制清除
+       时长标定：实测 30 点只维持约 5~10 秒（比理论 -1/秒 快数倍），
+                 所以把上限与初始值一并放大到 120，实测应落在 20~40 秒区间。 -->
+  <Affliction name="过载麻痹"
+              identifier="arccannon_paralysis"
+              description="患者的肌肉被电弧锁死，几乎无法行动。"
+              type="paralysis"
+              limbspecific="true"
+              indicatorlimb="Torso"
+              showiconthreshold="0"
+              showinhealthscannerthreshold="0"
+              treatmentthreshold="20"
+              maxstrength="120"
+              affectmachines="false"
+              isbuff="false">
+    <Effect minstrength="0" maxstrength="120"
+            strengthchange="-1"
+            minspeedmultiplier="0.1"
+            maxspeedmultiplier="0.1" />
+    <icon texture="Content/UI/MainIconsAtlas.png" sourcerect="640,640,128,128" color="0,255,0,255" origin="0,0" />
+  </Affliction>
+</Afflictions>

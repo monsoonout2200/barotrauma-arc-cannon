@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<contentpackage name="Arc Cannon" modversion="1.0.0" corepackage="false">
+  <Particles file="%ModDir%/arccannon_particles.xml" />
+  <Afflictions file="%ModDir%/arccannon_afflictions.xml" />
+  <Item file="%ModDir%/arccannon_items.xml" />
+</contentpackage>

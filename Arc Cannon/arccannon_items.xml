@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <!-- ============================================================
+       电弧炮 Arc Cannon
+       大型炮塔 / 蓄力 1.5 秒 / 发射一道电弧
+       普通电弧弹药：250 烧伤 + 100 深层组织伤（单发）
+       自制贴图（都放在 mod 根目录）：
+         turrets_base.png   = 底座
+         turrets_gun.png    = 机身 + 两根炮管（旋转主体，轴承圆盘已经合成在这张图里）
+         turrets_loader.png = 装弹器
+         turrets_yoke.png   = 轴承圆盘原件（已合成进 turrets_gun.png，仅留档）
+         ammoboxarc.png     = 弹药箱
+       装弹器暂时仍用原版 Loaders.png 贴图 + 冷色染色，等美术切图后再换。
+       ============================================================ -->
+  <Item name="电弧炮" description="一台架在大型硬点上的重型电弧炮塔，靠电容组把整段能量压成一道电弧发射出去。蓄力完成后才能放电，命中的血肉会被烧穿，并连带电击目标、留下深层组织损伤；代价是射速慢、耗电高，而且对船壳和舱门几乎无能为力。" identifier="arccannon" Tags="turret,slowturret" category="Machine,Weapon" subcategory="subweapons" interactthroughwalls="true" Scale="0.5" interactdistance="10" focusonselected="true" offsetonselected="800" linkable="true" allowedlinks="arccannonequipment">
+    <!-- MOD_ART：自制底座（不随潜望镜转动的那部分）。
+         图 = 1793683716196.png（mod 根目录）。
+         如果以后把图紧裁（去掉透明边），sourcerect 要同步改成 0,0,宽,高，
+         并且 Turret 的 barrelpos 与 SwappableItem 的 origin 都要减去裁剪偏移。 -->
+    <Sprite texture="%ModDir%/img/turrets_base.png" depth="0.01" sourcerect="35,73,426,370" origin="0.5,0.5" canflipy="false" />
+    <!-- 轴承圆盘（镶在底座大环孔里那块）。
+         DecorativeSprite 这条路走不通：它压不过炮身（炮身 0.011 始终盖在上面），
+         圆盘会被炮身底部的安装座挡住，看起来就像"没生效"。
+         改成直接把圆盘合成进 turrets_gun.png 的转轴位置（图内坐标 636,618），
+         这样它跟着炮身一起转，而且天然在底座之上。原件留档为 turrets_gun_art_only.png。 -->
+    <MinimapIcon name="Command_Weapons_ArcCannon" texture="Content/UI/CommandUIAtlas.png" sourcerect="384,768,128,128" />
+    <SwappableItem price="7500" replacementonuninstall="largeturrethardpoint" origin="213,370" swapidentifier="largeturret">
+      <SchematicSprite texture="Content/UI/WeaponUI.png" sourcerect="768,0,256,389" />
+      <SwapConnectedItem tag="periscope" swapto="periscope" />
+      <SwapConnectedItem tag="turretammosource" swapto="arccannonloader" />
+    </SwappableItem>
+    <UpgradePreviewSprite scale="2.5" texture="Content/UI/WeaponUI.png" sourcerect="265,810,96,65" origin="0.5,0.5" />
+    <StaticBody width="80" radius="80" />
+    <Turret singlechargedshot="true" maxchargetime="1.5" reload="1.5" canbeselected="false" characterusable="false" linkable="true" barrelpos="218,103" firingoffset="0,-522" usefiringoffsetformuzzleflash="true" rotationlimits="180,360" powerconsumption="5000.0" showchargeindicator="true" showprojectileindicator="true" recoildistance="60" springstiffnesslowskill="2" springstiffnesshighskill="50" springdampinglowskill="0.5" springdampinghighskill="10" rotationspeedlowskill="1" rotationspeedhighskill="7" MaxAngleOffset="15" AICurrentTargetPriorityMultiplier="1" ChargeSoundWindupPitchSlide="0.4,1.0">
+      <!-- 开炮音效：自制音频（mod 根目录）。已裁到 1.4 秒并加淡出：
+           原来 1.97 秒会拖到下一发（蓄力 1.5 + 装填 0.5 ≈ 2 秒一发），同一声音实例还在播时，
+           引擎会丢掉新的那次播放 —— 这就是"有时候开火没声音"的主因。
+           同时去掉了叠在底下的原版放电声，减少同帧并发音频的数量。 -->
+      <sound file="%ModDir%/arccannon_fire.ogg" range="12000" type="OnUse" volume="1.4" />
+      <WeaponIndicator texture="Content/UI/WeaponUI.png" sourcerect="500,913,66,32" origin="0.227, 0.5" />
+      <!-- MOD_ART：旋转主体（新炮身 + 合成进来的轴承圆盘）。
+           新炮身实测边界 469,82 333x581；圆盘合成在 (636,620)、半径 75，底边到 695，
+           所以矩形高度取到 613（82+613=695），origin y = 538/613 = 0.878，仍把圆盘中心钉在炮位(barrelpos)上。 -->
+      <RailSprite texture="%ModDir%/img/turrets_gun.png" depth="0.011" sourcerect="469,82,333,613" origin="0.502,0.878" />
+      <!-- 炮管已包含在上面那张图里，不再单独挂 BarrelSprite（否则会叠出一根原版导轨炮的炮管） -->
+      <Crosshair texture="Content/Items/Weapons/Crosshairs.png" sourcerect="256,0,256,256" />
+      <CrosshairPointer texture="Content/Items/Weapons/Crosshairs.png" sourcerect="0,0,256,256" />
+      <MoveSound file="Content/Items/Weapons/RailgunLoop.ogg" />
+      <StartMoveSound file="Content/Items/Weapons/RailgunStart.ogg" />
+      <EndMoveSound file="Content/Items/Weapons/RailgunStop.ogg" />
+      <ChargeSound file="Content/Items/Weapons/WEAPONS_chargeUp.ogg" range="10000" />
+      <!-- ==== 蓄力特效：只保留炮口电球 ====
+           ChargeSprite 钉在物品坐标系，炮塔一转就错位；ParticleEmitterCharge 的 distance 也是
+           在未旋转的坐标系里偏移（实测电柱不贴炮管），所以两个都去掉，只留炮口那一团。
+           炮口位置本身是随炮塔旋转的，所以电球永远在炮管顶端。 -->
+      <ParticleEmitterCharge particle="arccannon_charge" particlespersecond="40" scalemin="1.0" scalemax="1.6" anglemax="360" />
+      <ParticleEmitterCharge particle="arccannon_charge" particlespersecond="15" scalemin="1.8" scalemax="2.4" anglemax="360" />
+      <RequiredSkill identifier="weapons" level="60" />
+      <LightComponent LightColor="0.65,0.85,1.0,1.0" Flicker="0.0" range="2500" directional="true" IsOn="true" drawbehindsubs="true" ignorecontinuoustoggle="true" InheritParentIsActive="false">
+        <LightTexture texture="Content/Lights/lightcone.png" origin="0.0, 0.5" size="1.0,1.0" />
+      </LightComponent>
+      <!-- 炮口：开火瞬间的爆散（蓄力表现已改由上面的 ParticleEmitterCharge 负责） -->
+      <ParticleEmitter particle="arccannon_impact" particleamount="3" anglemin="0" anglemax="360" velocitymin="0" velocitymax="100" scalemin="0.5" scalemax="0.8" />
+      <ParticleEmitter particle="FlareBubbles" particleamount="7" anglemin="0" anglemax="360" velocitymin="0" velocitymax="50" colormultiplier="170,215,255,200" />
+      <!-- 开火时的屏幕反馈：只有镜头抖动与闪光，不做伤害 -->
+      <StatusEffect type="OnUse" target="This">
+        <Explosion range="1200.0" structuredamage="0" itemdamage="0" force="0.0" camerashake="12.0" flames="false" smoke="false" sparks="false" underwaterbubble="false" flash="true" flashcolor="150,205,255,255" flashrange="1600" flashduration="0.15" />
+      </StatusEffect>
+    </Turret>
+    <aitarget maxsightrange="3000" maxsoundrange="8000" fadeouttime="5" />
+    <ConnectionPanel selectkey="Action" canbeselected="true" msg="ItemMsgRewireScrewdriver" hudpriority="10">
+      <GuiFrame relativesize="0.2,0.32" minsize="400,350" maxsize="480,420" anchor="Center" style="ConnectionPanel" />
+      <RequiredItem items="screwdriver" type="Equipped" />
+      <input name="power_in" displayname="connection.powerin" />
+      <input name="position_in" displayname="connection.turretaimingin" />
+      <input name="trigger_in" displayname="connection.turrettriggerin" />
+      <input name="toggle_light" displayname="connection.togglelight" />
+      <input name="set_light" displayname="connection.setlight" />
+      <input name="set_auto_operate" displayname="connection.setautooperate" />
+      <input name="toggle_auto_operate" displayname="connection.toggleautooperate" />
+    </ConnectionPanel>
+    <SkillRequirementHint identifier="weapons" level="60" />
+  </Item>
+  <!-- ============================ 装弹器 ============================ -->
+  <Item name="电弧炮装弹器" identifier="arccannonloader" tags="arccannonequipment,arccannonammosource,turretammosource" category="Machine,Weapon" subcategory="subweapons" linkable="true" allowedlinks="arccannon" scale="0.5" damagedbyexplosions="true" explosiondamagemultiplier="0.2">
+    <!-- 换装时自带一箱弹（id 必须是自己家的弹箱，否则装不进去） -->
+    <SwappableItem canbebought="false" origin="82,359" spawnwithid="arccannonammobox" />
+    <!-- MOD_ART：自制装弹器 = turrets_loader.png（像素测量：530,4 起，164x359）。
+         没有损坏外观图，所以不写 BrokenSprite：坏掉时继续显示本体 + 冒烟冒泡，功能不受影响。 -->
+    <Sprite name="Arc Cannon Loader Front" texture="%ModDir%/img/turrets_loader.png" depth="0.78" sourcerect="530,4,164,359" origin="0.5,0.5" />
+    <!-- 背板：整张原图（31,569 117x200），depth 0.80 > 外壳 0.78，所以在外壳后面（本作数值越大越靠后）。
+         offset 是按像素实测算的：
+           窗口开口在图内 (559,210) 105x105 → 中心 (611.5, 262.5)
+           装弹器本体 rect 530,4 164x359 → 物品中心 (612, 183.5)
+           差值 (-0.5, +79)，这个坐标系里 y 负数=向下，所以写 (0,-79)。
+         偏了就以 1px 为单位微调：x 正=右、y 更负=更往下。 -->
+    <DecorativeSprite name="Arc Cannon Loader Back" texture="%ModDir%/img/turrets_loader_back.png" sourcerect="31,569,117,200" origin="0.5,0.5" offset="0,-79" depth="0.80" />
+    <UpgradePreviewSprite texture="Content/UI/WeaponUI.png" sourcerect="208,968,32,46" origin="0.5,0.5" />
+    <!-- 开火闪光·蓝 = 原版行为，只在开火瞬间亮 0.25 秒，平时不亮（所以不加 IsActiveConditional）。
+         蓝弹和紫弹共用这一层：两种弹药的装弹器表现都是"闪蓝"。
+         紫色灯已移除：IsActiveConditional 的 tag 判定在本引擎版本里表现不可靠
+         （试过 hastag="eq X" / hastag="! X" / HasTag="X" + conditionpercentage，均无法稳定区分三种弹药）。 -->
+    <LightComponent range="150.0" lightcolor="120,170,255,255" pulsefrequency="12" pulseamount="0.8" powerconsumption="0" IsOn="false" castshadows="true" allowingameediting="false" characterusable="false">
+      <sprite texture="%ModDir%/img/turrets_loader_glow.png" sourcerect="0,0,164,360" depth="0.1" origin="0.5,0.5" alpha="1.0" />
+      <StatusEffect type="OnActive" target="This" stackable="false" delay="0.25" IsOn="false" />
+    </LightComponent>
+    <!-- 开火闪光·红 = 装着过载弹时的红色警示，开火时再叠一次点亮。 -->
+    <LightComponent range="150.0" lightcolor="255,110,100,255" pulsefrequency="12" pulseamount="0.8" powerconsumption="0" IsOn="false" castshadows="true" allowingameediting="false" characterusable="false">
+      <sprite texture="%ModDir%/img/turrets_loader_glow_red.png" sourcerect="0,0,164,360" depth="0.1" origin="0.5,0.5" alpha="1.0" />
+      <IsActiveConditional targetcontaineditem="true" HasTag="arccannonammo3" conditionpercentage="gt 0" />
+      <StatusEffect type="OnActive" target="This" stackable="false" delay="0.25" IsOn="false" />
+    </LightComponent>
+    <!-- 弹药量指示灯：直接照搬原版 pulselaserloader 的 6 颗 LED（第 104~127 行），
+         贴图、坐标、颜色、百分比阈值全部一致，只是挂在我们的装弹器上。
+         我们的装弹器 164x359 与原版 165x358 几乎同尺寸，所以原版 origin 可以直接用。 -->
+    <LightComponent lightcolor="219,0,36,150" castshadows="false" range="0.0" IsOn="true" powerconsumption="0" alphablend="true" allowingameediting="false">
+      <sprite texture="Content/Items/Weapons/Loaders.png" sourcerect="348,921,25,27" origin="1.685,-4.88" alpha="1.0" />
+      <IsActiveConditional targetcontaineditem="true" conditionpercentage="gt 0" />
+    </LightComponent>
+    <LightComponent lightcolor="255,170,1,150" castshadows="false" range="0.0" IsOn="true" powerconsumption="0" alphablend="true" allowingameediting="false">
+      <sprite texture="Content/Items/Weapons/Loaders.png" sourcerect="348,921,25,27" origin="1.135,-4.88" alpha="1.0" />
+      <IsActiveConditional targetcontaineditem="true" conditionpercentage="gt 20" />
+    </LightComponent>
+    <LightComponent lightcolor="246,210,2,150" castshadows="false" range="0.0" IsOn="true" powerconsumption="0" alphablend="true" allowingameediting="false">
+      <sprite texture="Content/Items/Weapons/Loaders.png" sourcerect="348,921,25,27" origin="0.585,-4.88" alpha="1.0" />
+      <IsActiveConditional targetcontaineditem="true" conditionpercentage="gt 40" />
+    </LightComponent>
+    <LightComponent lightcolor="252,230,150" castshadows="false" range="0.0" IsOn="true" powerconsumption="0" alphablend="true" allowingameediting="false">
+      <sprite texture="Content/Items/Weapons/Loaders.png" sourcerect="348,921,25,27" origin="0.035,-4.88" alpha="1.0" />
+      <IsActiveConditional targetcontaineditem="true" conditionpercentage="gt 60" />
+    </LightComponent>
+    <LightComponent lightcolor="185,214,0,150" castshadows="false" range="0.0" IsOn="true" powerconsumption="0" alphablend="true" allowingameediting="false">
+      <sprite texture="Content/Items/Weapons/Loaders.png" sourcerect="348,921,25,27" origin="-0.515,-4.88" alpha="1.0" />
+      <IsActiveConditional targetcontaineditem="true" conditionpercentage="gt 80" />
+    </LightComponent>
+    <LightComponent lightcolor="79,184,0,150" castshadows="false" range="0.0" IsOn="true" powerconsumption="0" alphablend="true" allowingameediting="false">
+      <sprite texture="Content/Items/Weapons/Loaders.png" sourcerect="348,921,25,27" origin="-1.065,-4.88" alpha="1.0" />
+      <IsActiveConditional targetcontaineditem="true" conditionpercentage="gte 100" />
+    </LightComponent>
+    <ItemContainer hideitems="false" drawinventory="true" capacity="1" slotsperrow="1" itempos="81,-258" iteminterval="0,0" itemrotation="0" canbeselected="true" msg="ItemMsgInteractSelect" containedspritedepth="0.75">
+      <GuiFrame relativesize="0.18,0.23" anchor="Center" minsize="140,170" maxsize="280,280" style="ItemUI" />
+      <Containable items="arccannonammo,arccannonammo2,arccannonammo3" />
+      <!-- 炮塔每次开火都会触发这里，转手让弹箱自己补一发弹丸 -->
+      <StatusEffect type="OnUse" target="Contained">
+        <RequiredItem items="arccannonammo,arccannonammo2,arccannonammo3" type="Contained" />
+        <Use />
+      </StatusEffect>
+      <!-- 开火时点亮上面的蓝色闪光（只有装着弹才闪） -->
+      <StatusEffect type="OnUse" target="This,Contained" IsOn="True">
+        <Conditional condition="gt 0.0" TargetContainedItem="true" />
+      </StatusEffect>
+    </ItemContainer>
+    <Repairable selectkey="Action" header="mechanicalrepairsheader" deteriorationspeed="20" mindeteriorationdelay="5" maxdeteriorationdelay="15" MinDeteriorationCondition="0" RepairThreshold="50" fixDurationHighSkill="5" fixDurationLowSkill="25" msg="ItemMsgRepairWrench" hudpriority="10">
+      <StatusEffect type="InWater" target="This" condition="-0.25" />
+      <GuiFrame relativesize="0.2,0.16" minsize="400,180" maxsize="480,280" anchor="Center" relativeoffset="-0.1,0.27" style="ItemUI" />
+      <RequiredSkill identifier="mechanical" level="55" />
+      <RequiredItem items="wrench" type="Equipped" />
+      <ParticleEmitter particle="damagebubbles" particlespersecond="2" scalemin="0.5" scalemax="1.5" anglemax="360" velocitymin="-10" velocitymax="10" mincondition="0.0" maxcondition="50.0" />
+      <ParticleEmitter particle="smoke" particlespersecond="2" scalemin="1" scalemax="2.5" anglemax="360" velocitymin="-50" velocitymax="50" mincondition="15.0" maxcondition="50.0" />
+      <ParticleEmitter particle="heavysmoke" particlespersecond="2" scalemin="1.0" scalemax="2.5" anglemax="360" distancemax="60" mincondition="0.0" maxcondition="15.0" />
+      <StatusEffect type="OnFailure" target="Character" targetlimbs="LeftHand,RightHand" AllowWhenBroken="true">
+        <Sound file="Content/Items/MechanicalRepairFail.ogg" range="1000" />
+        <Affliction identifier="lacerations" strength="5" />
+        <Affliction identifier="stun" strength="4" />
+      </StatusEffect>
+    </Repairable>
+    <ConnectionPanel selectkey="Action" canbeselected="true" msg="ItemMsgRewireScrewdriver" hudpriority="10">
+      <GuiFrame relativesize="0.2,0.32" minsize="400,350" maxsize="480,420" anchor="Center" style="ConnectionPanel" />
+      <RequiredItem items="screwdriver" type="Equipped" />
+      <output name="condition_out" displayname="connection.conditionout" />
+      <output name="contained_conditions" displayname="connection.ammunitionout" />
+    </ConnectionPanel>
+    <!-- 原来照着原版装弹器做的 6 个弹量指示灯已经去掉：
+         它们的坐标是原版 Loaders.png 上的灯泡位置，换自制图后会浮在空处。
+         现在看余弹靠弹箱本体的子弹格子（containedstateindicatorstyle="bullet"）。
+         如果以后想在新图上做电量表，把下面三行取消注释，并把 origin 改成新图里灯位的坐标即可。
+    <LightComponent lightcolor="110,200,255,180" castshadows="false" range="0.0" IsOn="true" powerconsumption="0" alphablend="true" allowingameediting="false">
+      <sprite texture="%ModDir%/img/turrets_loader.png" sourcerect="532,0,160,366" origin="0.5,0.5" alpha="1.0" />
+      <IsActiveConditional targetcontaineditem="true" conditionpercentage="gt 0" />
+    </LightComponent>
+    -->
+  </Item>
+  <!-- ============================ 弹丸 ============================ -->
+  <!-- 隐藏物品：只在弹箱内部存在，由弹箱每次开火时生成，被炮塔取走 -->
+  <Item name="电弧放电单元" identifier="arccannonbolt" category="Weapon" scale="0.5" sonarsize="2" hideinmenus="true">
+    <Sprite texture="Content/Particles/ParticleAtlas.png" sourcerect="0,0,1,1" depth="0.55" color="0,0,0,0" />
+    <Body width="170" height="10" density="20" />
+    <Holdable slots="RightHand+LeftHand" holdpos="0,-50" handle1="-10,0" handle2="10,0" aimable="false" />
+    <Projectile characterusable="false" hitscan="true" removeonhit="true" damagedoors="true" penetration="0.6" maxtargetstohit="1">
+      <!-- 沿射线铺开的电弧（已缩小：原来太粗太大） -->
+      <ParticleEmitter particle="arccannon_arc" particleamount="1" emitacrossrayinterval="55" scalemin="0.5" scalemax="0.8" />
+      <!-- 直击伤害：200 烧伤 + 175 深层组织伤 + 100 电击 + 10 秒眩晕 + 80 减速；不带 EMP（EMP 只在打中船壳后的放电里生效）。
+           targetforce 300 = 击退、slow 80 = 减速拉满：这两条是给 StunImmunity="True" 的 21 个角色
+           （末影虫、卡律布狄斯、锤头鲨全家、莫洛克、潜伏者、巨棘刺虫、机器人等）的保底控制，
+           因为眩晕免疫是布尔硬开关，XML 无法绕过。 -->
+      <Attack structuredamage="0" itemdamage="0" severlimbsprobability="0.1" penetration="0.6" targetforce="300">
+        <Affliction identifier="burn" strength="200" dividebylimbcount="false" />
+        <Affliction identifier="internaldamage" strength="175" dividebylimbcount="false" />
+        <!-- 电击伤：和放电线圈同类型，会掉血 + 麻痹 -->
+        <Affliction identifier="electricshock" strength="100" />
+        <!-- 眩晕：每秒 -1 点，10 点 = 约 10 秒无法行动（原版上限 30）；对 StunImmunity 的角色无效 -->
+        <Affliction identifier="stun" strength="10" />
+        <!-- 减速：打到满值 80（上限 80），免疫眩晕的 Boss 也能被压到最低移速 —— 硬控失效时的保底手段 -->
+        <Affliction identifier="slow" strength="80" />
+      </Attack>
+      <StatusEffect type="OnImpact" target="UseTarget">
+        <ParticleEmitter particle="arccannon_impact" particleamount="4" anglemin="0" anglemax="360" velocitymin="0" velocitymax="120" scalemin="0.6" scalemax="1.1" />
+        <ParticleEmitter particle="spark" copyentityangle="true" anglemin="-10" anglemax="10" particleamount="6" velocitymin="-10" velocitymax="-200" scalemin="0.4" scalemax="0.8" />
+        <ParticleEmitter particle="weldspark" copyentityangle="true" anglemin="-40" anglemax="40" particleamount="6" velocitymin="-300" velocitymax="-800" scalemin="0.8" scalemax="1.4" colormultiplier="190,225,255,200" />
+        <ParticleEmitter particle="FlareBubbles" particleamount="3" anglemin="0" anglemax="360" velocitymin="0" velocitymax="60" colormultiplier="170,215,255,200" />
+        <sound file="Content/Items/Weapons/WEAPONS_electricalDischarge2.ogg" range="5000" />
+      </StatusEffect>
+      <!-- 命中生物：附带一次爆散（范围 175，烧伤 50 / 深层组织伤 35），只对角色生效。
+           之前把 smoke/flames 都关了，结果只有伤害没有画面，看着像"没生效" —— 现在开烟、火花、焦痕、轻微镜头抖动。 -->
+      <StatusEffect type="OnImpact" target="UseTarget">
+        <Conditional entitytype="eq Character" />
+        <Explosion range="175.0" structuredamage="0" itemdamage="0" ballastfloradamage="0" force="2.0" penetration="0.3" flames="false" smoke="true" sparks="true" underwaterbubble="true" applyfireeffects="false" decal="explosion" decalsize="0.2" camerashake="3.0" flash="true" flashcolor="200,230,255,255" flashrange="900" flashduration="0.08">
+          <Affliction identifier="burn" strength="50" dividebylimbcount="false" />
+          <Affliction identifier="internaldamage" strength="35" dividebylimbcount="false" />
+          <Affliction identifier="electricshock" strength="35" />
+          <Affliction identifier="stun" strength="1" />
+        </Explosion>
+      </StatusEffect>
+      <!-- 命中船壳：放电线圈式的一层结算 —— 半径 750、ignorecover 无视掩体（内外墙通吃）。
+           实际数值：电击 30 / 烧伤 15 / 深层组织伤 10 / 无眩晕，外加独立的 EMP 段（emp 100）。
+           注意：这里拆成两段，每段只挂一个 Conditional —— 之前用 comparison="Or" 把 Structure 和 door 写在一起，
+           实测不触发（引擎大概率按 And 处理，要求同时是墙又是门）。 -->
+      <StatusEffect type="OnImpact" target="UseTarget">
+        <Conditional entitytype="eq Structure" />
+        <!-- 声光：照抄放电线圈 -->
+        <sound file="Content/Items/Weapons/WEAPONS_electricalDischarge1.ogg" range="20000" selectionmode="Random" />
+        <sound file="Content/Items/Weapons/WEAPONS_electricalDischarge2.ogg" range="20000" />
+        <ParticleEmitter particle="risingbubbles" anglemin="0" anglemax="360" particleamount="24" velocitymin="30" velocitymax="70" scalemin="1" scalemax="1.6" />
+        <!-- 沿着船壳乱窜的电弧：扩散速度收敛到约 335 像素范围 -->
+        <ParticleEmitter particle="ElectricShock" particleamount="12" anglemin="0" anglemax="360" scalemin="2.5" scalemax="5" velocitymin="0" velocitymax="110" />
+        <ParticleEmitter particle="arccannon_arc" particleamount="18" anglemin="0" anglemax="360" scalemin="1" scalemax="2" velocitymin="80" velocitymax="335" />
+        <ParticleEmitter particle="spark" anglemin="0" anglemax="360" particleamount="14" velocitymin="60" velocitymax="240" scalemin="0.5" scalemax="1" colormultiplier="190,225,255,220" />
+        <!-- 残留 0.35 秒的电弧场（纯视觉，不带伤害） -->
+        <SpawnItem identifier="arccannon_dischargefield" spawnposition="This" />
+        <!-- 1) 电人：电击麻痹 + 烧伤 + 深层组织伤 -->
+        <Explosion range="750.0" structuredamage="0" itemdamage="0" ballastfloradamage="0" force="0.0" stun="0" penetration="0.3" camerashake="5" shockwave="false" flames="false" smoke="false" sparks="true" underwaterbubble="false" applyfireeffects="false" ignorecover="true" flash="true" flashcolor="150,205,255,255" flashrange="3000" flashduration="0.2">
+          <Affliction identifier="electricshock" strength="30" />
+          <Affliction identifier="burn" strength="15" dividebylimbcount="false" />
+          <Affliction identifier="internaldamage" strength="10" dividebylimbcount="false" />
+        </Explosion>
+        <!-- 2) 电电器：电磁脉冲，和原版核弹 EMP 段同一写法 -->
+        <Explosion range="750.0" force="0.0" smoke="false" sparks="false" empstrength="2.5" applyfireeffects="false" ignorecover="true">
+          <Affliction identifier="emp" strength="100" multiplybymaxvitality="true" />
+        </Explosion>
+      </StatusEffect>
+      <!-- 命中舱门：同样的放电（门是 Item，不是 Structure，所以要单独一段）。
+           粒子参数与上面的船壳段保持一致（335 速度上限），否则打门和打墙的观感会不一样。 -->
+      <StatusEffect type="OnImpact" target="UseTarget">
+        <Conditional hastag="eq door" />
+        <sound file="Content/Items/Weapons/WEAPONS_electricalDischarge1.ogg" range="20000" selectionmode="Random" />
+        <ParticleEmitter particle="ElectricShock" particleamount="12" anglemin="0" anglemax="360" scalemin="2.5" scalemax="5" velocitymin="0" velocitymax="110" />
+        <ParticleEmitter particle="arccannon_arc" particleamount="18" anglemin="0" anglemax="360" scalemin="1" scalemax="2" velocitymin="80" velocitymax="335" />
+        <SpawnItem identifier="arccannon_dischargefield" spawnposition="This" />
+        <Explosion range="750.0" structuredamage="0" itemdamage="0" ballastfloradamage="0" force="0.0" stun="0" penetration="0.3" camerashake="5" shockwave="false" flames="false" smoke="false" sparks="true" underwaterbubble="false" applyfireeffects="false" ignorecover="true" flash="true" flashcolor="150,205,255,255" flashrange="3000" flashduration="0.2">
+          <Affliction identifier="electricshock" strength="30" />
+          <Affliction identifier="burn" strength="15" dividebylimbcount="false" />
+          <Affliction identifier="internaldamage" strength="10" dividebylimbcount="false" />
+        </Explosion>
+        <Explosion range="750.0" force="0.0" smoke="false" sparks="false" empstrength="2.5" applyfireeffects="false" ignorecover="true">
+          <Affliction identifier="emp" strength="100" multiplybymaxvitality="true" />
+        </Explosion>
+      </StatusEffect>
+      <!-- 弹药不允许在弹箱外长期存在（延迟 1 秒，照原版弹药的写法） -->
+      <StatusEffect type="OnNotContained" target="This" delay="1">
+        <Remove />
+      </StatusEffect>
+    </Projectile>
+  </Item>
+  <!-- ============================ 弹药箱 ============================ -->
+  <Item name="电弧弹药箱" description="一箱预充能的电弧放电单元，为电弧炮提供弹药。以铀燃料棒与锂、铜、锌制成的电容组，一箱只够打 20 次。" identifier="arccannonammobox" scale="0.5" tags="arccannonequipment,arccannonammo,ammobox" category="Weapon" linkable="true" impactsoundtag="impact_metal_heavy" cargocontaineridentifier="">
+    <PreferredContainer primary="arccannonammosource" amount="1" mincondition="1" />
+    <PreferredContainer primary="ammoboxcontainer" mincondition="1" />
+    <Price baseprice="800" minavailable="1" displaynonempty="true">
+      <Price storeidentifier="merchantoutpost" multiplier="1.5" />
+      <Price storeidentifier="merchantcity" multiplier="1.4" sold="false" />
+      <Price storeidentifier="merchantresearch" multiplier="1.3" />
+      <Price storeidentifier="merchantmilitary" multiplier="0.9" minavailable="2" />
+      <Price storeidentifier="merchantmine" multiplier="1.2" sold="false" />
+      <Price storeidentifier="merchantarmory" multiplier="0.9" minavailable="2" />
+    </Price>
+    <!-- 拆解：耐久 ≥ 90% 才返还贵重材料；低于 90% 只回 1 钢 + 1 铝。
+         底料（无条件）+ 高耐久额外返还（mincondition="0.9"）= 满耐久时 2 钢 / 3 铀 / 2 锂 / 2 铜 / 1 锌 / 1 铝。 -->
+    <Deconstruct time="15">
+      <Item identifier="steel" />
+      <Item identifier="aluminium" />
+      <Item identifier="steel" mincondition="0.9" />
+      <Item identifier="uranium" amount="3" mincondition="0.9" />
+      <Item identifier="lithium" amount="2" mincondition="0.9" />
+      <Item identifier="copper" amount="2" mincondition="0.9" />
+      <Item identifier="zinc" mincondition="0.9" />
+    </Deconstruct>
+    <!-- 制造：2 铀燃料棒 + 3 锂 + 3 铜 + 2 锌 + 1 铝 -->
+    <Fabricate suitablefabricators="fabricator" requiredtime="25">
+      <RequiredSkill identifier="weapons" level="45" />
+      <RequiredItem identifier="fuelrod" amount="2" />
+      <RequiredItem identifier="lithium" amount="3" />
+      <RequiredItem identifier="copper" amount="3" />
+      <RequiredItem identifier="zinc" amount="2" />
+      <RequiredItem identifier="aluminium" />
+    </Fabricate>
+    <!-- 回收：把打空的弹箱（耐久 ≤10%）用材料重新灌满 -->
+    <Fabricate suitablefabricators="fabricator" displayname="recycleitem" requiredtime="15">
+      <RequiredSkill identifier="weapons" level="40" />
+      <RequiredItem identifier="fuelrod" />
+      <RequiredItem identifier="lithium" />
+      <RequiredItem identifier="copper" amount="2" />
+      <RequiredItem identifier="zinc" />
+      <RequiredItem tag="ammobox" mincondition="0.0" maxcondition="0.1" usecondition="false" description="fabricationdescription.ammoboxrecycle" header="fabricationheader.ammoboxrecycle" defaultitem="arccannonammobox" />
+    </Fabricate>
+    <!-- MOD_ART：自制弹药箱 = mod 根目录下的 ammoboxarc.png（100x80，整张贴，不用切） -->
+    <Sprite texture="%ModDir%/img/ammoboxarc.png" depth="0.54" sourcerect="0,0,100,80" origin="0.5,0.5" color="255,255,255,255" />
+    <Body width="90" height="72" density="30" />
+    <Holdable canbecombined="true" removeoncombined="false" slots="RightHand,LeftHand" holdpos="0,-30" handle1="0,-30" aimable="false" msg="ItemMsgPickUpSelect">
+      <StatValue stattype="MovementSpeed" value="-0.2" />
+    </Holdable>
+    <ItemContainer hideitems="true" capacity="1" drawinventory="false" canbeselected="false" canbecombined="true" ShowConditionInContainedStateIndicator="true" removecontaineditemsondeconstruct="true" containedstateindicatorstyle="bullet">
+      <!-- 每次被触发：先补一发弹丸进箱内，再扣耐久；-10 一发，满耐久 100 = 10 发 -->
+      <StatusEffect type="OnUse" target="This" disabledeltatime="true">
+        <SpawnItem identifiers="arccannonbolt" spawnposition="ThisInventory" />
+        <Conditional condition="gt 0" />
+      </StatusEffect>
+      <StatusEffect type="OnUse" target="This" condition="-5.0" disabledeltatime="true">
+        <RequiredItem items="arccannonbolt" type="Contained" />
+      </StatusEffect>
+      <Containable items="arccannonbolt" />
+    </ItemContainer>
+  </Item>
+  <!-- ============================ 电弧场（纯视觉） ============================
+       命中船壳时由弹丸 SpawnItem 生成，活在原地 0.35 秒，不停往外甩电弧，
+       模仿"电流顺着钢板爬"的观感。不带任何 Affliction —— 伤害全部由弹丸那两段 Explosion 结算。
+       做法照抄原版重力弹的 gravityshelleffect（OnSpawn + duration + delay 自毁）。 -->
+  <Item name="电弧场" identifier="arccannon_dischargefield" category="Misc" scale="0.5" hideinmenus="true">
+    <Sprite texture="Content/Particles/ParticleAtlas.png" sourcerect="0,0,1,1" color="0,0,0,0" depth="0.9" />
+    <Body radius="10" density="1" gravityscale="0" />
+    <Projectile characterusable="false" launchimpulse="0">
+      <!-- 生成瞬间先炸开一圈 -->
+      <StatusEffect type="OnSpawn" target="This">
+        <ParticleEmitter particle="arccannon_arc" particleamount="40" anglemin="0" anglemax="360" velocitymin="50" velocitymax="350" scalemin="1" scalemax="2.5" />
+      </StatusEffect>
+      <!-- 0.35 秒内持续往外甩电弧 -->
+      <StatusEffect type="OnSpawn" target="This" duration="0.35" stackable="false">
+        <ParticleEmitter particle="arccannon_arc" particlespersecond="90" anglemin="0" anglemax="360" velocitymin="100" velocitymax="600" scalemin="1" scalemax="2" />
+        <ParticleEmitter particle="ElectricShock" particlespersecond="8" anglemin="0" anglemax="360" scalemin="2" scalemax="4" velocitymin="0" velocitymax="120" />
+      </StatusEffect>
+      <!-- 0.35 秒后自毁 -->
+      <StatusEffect type="OnSpawn" target="This" delay="0.35">
+        <Remove />
+      </StatusEffect>
+    </Projectile>
+  </Item>
+  <!-- ============================ 过载电弧弹（第三种弹药） ============================
+       一发、红色特效、命中后由"过载爆心"结算 2500 半径的设备破坏型战斗部：
+         · 直射（电弧段）：800 总伤害（四种无抗性类型各 200）
+         · 命中墙体/潜艇：2500 半径 itemdamage 600 —— 反应堆 explosiondamagemultiplier 0.2，
+           600×0.2=120 > 100 耐久，所以只要反应堆里有燃料就会被打到熔毁。 -->
+  <Item name="电弧放电单元·过载" identifier="arccannonbolt3" category="Weapon" scale="0.5" sonarsize="2" hideinmenus="true">
+    <Sprite texture="Content/Particles/ParticleAtlas.png" sourcerect="0,0,1,1" depth="0.55" color="0,0,0,0" />
+    <Body width="170" height="10" density="20" />
+    <Holdable slots="RightHand+LeftHand" holdpos="0,-50" handle1="-10,0" handle2="10,0" aimable="false" />
+    <Projectile characterusable="false" hitscan="true" removeonhit="true" penetration="1.0" damagedoors="true" maxtargetstohit="1">
+      <!-- 粒子光矛：沿射线每 22 像素叠一颗径向光球，密到互相重叠就成了一条连续光束。
+           和蓝色电弧用同一套发射器写法（不带 copyentityangle，那是指向偏移的根源）。 -->
+      <ParticleEmitter particle="arccannon_lance_red" particleamount="1" emitacrossrayinterval="22" scalemin="1" scalemax="1.15" />
+      <!-- 光束边缘再撒一点电弧碎片，避免看起来太"硬" -->
+      <ParticleEmitter particle="arccannon_arc_red" particleamount="1" emitacrossrayinterval="90" scalemin="0.35" scalemax="0.6" />
+      <!-- 直击：只挂减速 80。麻痹改到下面独立的 StatusEffect 里施加。 -->
+      <Attack structuredamage="0" itemdamage="0" severlimbsprobability="0" penetration="1.0">
+        <Affliction identifier="slow" strength="80" />
+      </Attack>
+      <!-- 直击结算（全身）：这一段不写 targetlimbs，配合 dividebylimbcount="false"
+           会把每个症状**施加到目标的每一个部位**上，而不是只挂在被打中的那一块。
+             · internaldamage 75 / burn 45 → 每部位各一份
+             · arccannon_paralysis 30        → 每个部位各 30 点，每秒 -1，30 秒归零
+           因为过载麻痹是 limbspecific="true"，能被部位承载；而引擎判 IsParalyzed 只看
+           "角色身上有没有 type=paralysis 的症状"，全身都有 → 必然成立。 -->
+      <StatusEffect type="OnImpact" target="UseTarget">
+        <Conditional entitytype="eq Character" />
+        <Affliction identifier="internaldamage" strength="75" dividebylimbcount="false" />
+        <Affliction identifier="burn" strength="45" dividebylimbcount="false" />
+        <Affliction identifier="arccannon_paralysis" strength="120" dividebylimbcount="false" />
+      </StatusEffect>
+      <!-- 方案 A：照原版 EMP 手雷那条写（<StatusEffect type="OnBroken" target="nearbyItems" range="450"
+             targettags="loadable" condition="-100" />）—— 不经过爆炸结算，按半径直接改物品耐久。
+           第一段按 tag 白名单命中"电气与机械"（含船用电池 battery / batterycellrecharger）；
+           耗材（氧气罐/焊枪/燃料棒/材料）原版没有 tag，天然被排除。
+           带 Conditional entitytype="neq Character"：直击打中生物时不做范围结算。 -->
+      <StatusEffect type="OnImpact" target="nearbyItems" range="2500" targettags="pump,reactor,junctionbox,engine,supercapacitor,command,statusmonitor,battery,batterycellrecharger" condition="-600">
+        <Conditional entitytype="neq Character" />
+      </StatusEffect>
+      <!-- 第二段按 identifier 补漏：原版这几个设备没有 tags，只能用 id 精确点名
+           （targetidentifiers 的原版用法见 traitor_items.xml:302）。 -->
+      <StatusEffect type="OnImpact" target="nearbyItems" range="2500" targetidentifiers="oxygenerator,fabricator,deconstructor,medicalfabricator" condition="-600">
+        <Conditional entitytype="neq Character" />
+      </StatusEffect>
+      <!-- 命中点的红色电光（纯视觉）：扩散控制在约 120 像素内 -->
+      <StatusEffect type="OnImpact" target="This">
+        <ParticleEmitter particle="arccannon_impact_red" particleamount="12" anglemin="0" anglemax="360" velocitymin="0" velocitymax="120" scalemin="0.8" scalemax="1.5" />
+        <ParticleEmitter particle="ElectricShock" particleamount="6" anglemin="0" anglemax="360" scalemin="1.5" scalemax="3" velocitymin="0" velocitymax="100" />
+        <sound file="Content/Items/Weapons/WEAPONS_electricalDischarge1.ogg" range="20000" selectionmode="Random" />
+      </StatusEffect>
+    </Projectile>
+  </Item>
+  <!-- ============================ 高维信标弹药箱（一发） ============================ -->
+  <Item name="高维信标弹药箱" description="一箱只有一发。别问为什么这么贵，问就是那位不收现金，只收摄魂矿。光落在哪儿，哪儿就没了——有时候包括你自己的船。" identifier="arccannonammobox3" scale="0.5" tags="arccannonequipment,arccannonammo3,ammobox" category="Weapon" linkable="true" impactsoundtag="impact_metal_heavy" cargocontaineridentifier="">
+    <PreferredContainer primary="arccannonammosource" amount="1" mincondition="1" />
+    <PreferredContainer primary="ammoboxcontainer" mincondition="1" />
+    <Price baseprice="3000" minavailable="1" displaynonempty="true">
+      <Price storeidentifier="merchantoutpost" multiplier="1.5" sold="false" />
+      <Price storeidentifier="merchantcity" multiplier="1.4" sold="false" />
+      <Price storeidentifier="merchantresearch" multiplier="1.3" sold="false" />
+      <Price storeidentifier="merchantmilitary" multiplier="0.9" minavailable="1" />
+      <Price storeidentifier="merchantmine" multiplier="1.2" sold="false" />
+      <Price storeidentifier="merchantarmory" multiplier="0.9" minavailable="1" />
+    </Price>
+    <!-- 拆解：无条件 1 钢 + 1 铝；耐久 ≥99% 额外返还一半材料（2 摄魂矿 + 1 雷素 + 1 钢） -->
+    <Deconstruct time="20">
+      <Item identifier="steel" />
+      <Item identifier="aluminium" />
+      <Item identifier="dementonite" amount="2" mincondition="0.99" />
+      <Item identifier="fulgurium" mincondition="0.99" />
+      <Item identifier="steel" mincondition="0.99" />
+    </Deconstruct>
+    <!-- 制造：4 摄魂矿 + 2 雷素 + 2 钢筋 + 1 铝 -->
+    <Fabricate suitablefabricators="fabricator" requiredtime="40">
+      <RequiredSkill identifier="weapons" level="60" />
+      <RequiredItem identifier="dementonite" amount="4" />
+      <RequiredItem identifier="fulgurium" amount="2" />
+      <RequiredItem identifier="steel" amount="2" />
+      <RequiredItem identifier="aluminium" />
+    </Fabricate>
+    <!-- 回收：4 摄魂矿 + 2 雷素 + 1 钢筋 + 空箱 -->
+    <Fabricate suitablefabricators="fabricator" displayname="recycleitem" requiredtime="30">
+      <RequiredSkill identifier="weapons" level="55" />
+      <RequiredItem identifier="dementonite" amount="4" />
+      <RequiredItem identifier="fulgurium" amount="2" />
+      <RequiredItem identifier="steel" />
+      <RequiredItem tag="ammobox" mincondition="0.0" maxcondition="0.1" usecondition="false" description="fabricationdescription.ammoboxrecycle" header="fabricationheader.ammoboxrecycle" defaultitem="arccannonammobox3" />
+    </Fabricate>
+    <Sprite texture="%ModDir%/img/ammoboxarc_red.png" depth="0.54" sourcerect="0,0,100,80" origin="0.5,0.5" color="255,255,255,255" />
+    <Body width="90" height="72" density="30" />
+    <Holdable canbecombined="true" removeoncombined="false" slots="RightHand,LeftHand" holdpos="0,-30" handle1="0,-30" aimable="false" msg="ItemMsgPickUpSelect">
+      <StatValue stattype="MovementSpeed" value="-0.2" />
+    </Holdable>
+    <ItemContainer hideitems="true" capacity="1" drawinventory="false" canbeselected="false" canbecombined="true" ShowConditionInContainedStateIndicator="true" removecontaineditemsondeconstruct="true" containedstateindicatorstyle="bullet">
+      <!-- 一发打空：-100 就是满耐久 100 的 100% -->
+      <StatusEffect type="OnUse" target="This" disabledeltatime="true">
+        <SpawnItem identifiers="arccannonbolt3" spawnposition="ThisInventory" />
+        <Conditional condition="gt 0" />
+      </StatusEffect>
+      <StatusEffect type="OnUse" target="This" condition="-100.0" disabledeltatime="true">
+        <RequiredItem items="arccannonbolt3" type="Contained" />
+      </StatusEffect>
+      <Containable items="arccannonbolt3" />
+    </ItemContainer>
+  </Item>
+  <!-- ============================ 电弧帷幕（第三种弹药的效果载体） ============================
+       紫色电雾：命中后就地生成，存活 6 秒、半径 180，每 0.5 秒结算一次。
+         · 对角色：电击 10 / 深层 3 / 烧伤 2
+         · 对设备：EMP 10 / 耐久 -20（沿用红弹的电气机械白名单）
+       注意：interval 与 nearbyCharacters 两个写法还没在游戏里验证过，见文件末尾说明。 -->
+  <Item name="电弧帷幕" identifier="arccannon_arcmist" category="Misc" scale="0.5" hideinmenus="true">
+    <Sprite texture="Content/Particles/ParticleAtlas.png" sourcerect="0,0,1,1" color="0,0,0,0" depth="0.9" />
+    <Body radius="10" density="1" gravityscale="0" />
+    <Projectile characterusable="false" launchimpulse="0">
+      <!-- 生成瞬间：一团紫色电弧炸开 -->
+      <StatusEffect type="OnSpawn" target="This">
+        <ParticleEmitter particle="arccannon_arcfog" particleamount="26" anglemin="0" anglemax="360" velocitymin="0" velocitymax="200" scalemin="1.2" scalemax="2.6" />
+        <ParticleEmitter particle="ElectricShock" particleamount="6" anglemin="0" anglemax="360" velocitymin="0" velocitymax="150" scalemin="1.0" scalemax="2.0" />
+        <sound file="Content/Items/Weapons/WEAPONS_electricalDischarge2.ogg" range="6000" selectionmode="Random" />
+      </StatusEffect>
+      <!-- 6 秒持续电弧雾：三层，全部是电弧本体，没有"雾团"贴图
+           主雾 26 颗/秒（小、原地噼啪，靠数量闪成一片）
+           大弧 5 颗/秒（偶发的长电弧，给层次）
+           白电光 3 颗/秒（原版 ElectricShock，点出放电的高光） -->
+      <StatusEffect type="OnSpawn" target="This" duration="6">
+        <ParticleEmitter particle="arccannon_arcfog" particlespersecond="26" anglemin="0" anglemax="360" velocitymin="0" velocitymax="70" scalemin="0.7" scalemax="1.6" distancemin="0" distancemax="180" />
+        <ParticleEmitter particle="arccannon_arcfog" particlespersecond="5" anglemin="0" anglemax="360" velocitymin="0" velocitymax="120" scalemin="1.8" scalemax="3.2" distancemin="0" distancemax="180" />
+        <ParticleEmitter particle="ElectricShock" particlespersecond="3" anglemin="0" anglemax="360" velocitymin="0" velocitymax="60" scalemin="1.0" scalemax="2.0" distancemin="0" distancemax="180" />
+      </StatusEffect>
+      <!-- 每 0.5 秒：电人 -->
+      <StatusEffect type="OnActive" target="nearbyCharacters" range="180" interval="0.5" duration="6">
+        <Affliction identifier="electricshock" strength="10" />
+        <Affliction identifier="internaldamage" strength="10" dividebylimbcount="false" />
+        <Affliction identifier="burn" strength="15" dividebylimbcount="false" />
+      </StatusEffect>
+      <!-- 每 0.5 秒：电设备（EMP + 耐久 -20） -->
+      <StatusEffect type="OnActive" target="nearbyItems" range="180" interval="0.5" duration="6" targettags="pump,reactor,junctionbox,engine,supercapacitor,command,statusmonitor,battery,batterycellrecharger" condition="-20">
+        <Affliction identifier="emp" strength="10" />
+      </StatusEffect>
+      <!-- 6 秒后自毁 -->
+      <StatusEffect type="OnSpawn" target="This" delay="6">
+        <Remove />
+      </StatusEffect>
+    </Projectile>
+    <!-- 吸力：照原版重力弹的写法（railgun.xml:611），force 为正 = 朝中心拉。
+         半径比帷幕的 180 略大（220），这样边缘外的目标也会被拽进来。
+         distancebasedforce="false" = 远近力度一样，不会越靠近越猛。
+         想更猛就把 force 提到 200~300；想只吸生物不吸物品，删掉 triggeredby 里的 Item。 -->
+    <TriggerComponent triggeredby="Creature,Human,Item" force="80" radius="220" distancebasedforce="false" />
+  </Item>
+  <!-- ============================ 电弧帷幕弹丸（紫色） ============================ -->
+  <Item name="电弧帷幕单元" identifier="arccannonbolt2" category="Weapon" scale="0.5" sonarsize="2" hideinmenus="true">
+    <Sprite texture="Content/Particles/ParticleAtlas.png" sourcerect="0,0,1,1" depth="0.55" color="0,0,0,0" />
+    <Body width="170" height="10" density="20" />
+    <Holdable slots="RightHand+LeftHand" holdpos="0,-50" handle1="-10,0" handle2="10,0" aimable="false" />
+    <Projectile characterusable="false" hitscan="true" removeonhit="true" penetration="1.0" damagedoors="true" maxtargetstohit="1">
+      <!-- 紫色脉冲：从炮口沿瞄准方向窜出去的一发紫光（不是铺射线的珠子）。
+           hit-scan 瞬时命中，引擎没有"从炮口飞到目标"的脉冲机制，
+           所以它只飞出去一段就淡掉；想要真正飞到目标只能上 Lua 脚本。
+           distance 245~270 = firingoffset 522 × 物品 Scale 0.5 ≈ 261 世界像素，
+           把发射点从炮塔中心推到炮口（这一段待实测：若偏到固定方向，说明 distance 不随炮塔旋转）。 -->
+      <ParticleEmitter particle="arccannon_pulse_purple" particleamount="2" copyentityangle="true" anglemin="-3" anglemax="3" velocitymin="1000" velocitymax="1400" scalemin="0.8" scalemax="1.2" distancemin="245" distancemax="270" />
+      <!-- 直击：小伤害，主要作用是布场 -->
+      <Attack structuredamage="0" itemdamage="0" severlimbsprobability="0" penetration="1.0">
+        <Affliction identifier="electricshock" strength="20" />
+        <Affliction identifier="slow" strength="20" />
+      </Attack>
+      <!-- 命中后就地拉起电弧帷幕（爆散粒子由帷幕自己的 OnSpawn 负责，这里不重复生成）
+           同时放一个和帷幕同半径（180）的冲击爆炸：画面和电弧场一致，但只造眩晕、不带任何伤害。
+           stun 10 = 约 10 秒硬控（对 StunImmunity 的 21 个角色无效，这是原版布尔免疫）。 -->
+      <StatusEffect type="OnImpact" target="This">
+        <SpawnItem identifier="arccannon_arcmist" spawnposition="This" />
+        <Explosion range="180.0" structuredamage="0" itemdamage="0" ballastfloradamage="0"
+                   force="0.0" flames="false" smoke="false" sparks="true" underwaterbubble="false"
+                   applyfireeffects="false" camerashake="3.0"
+                   flash="true" flashcolor="190,130,255,255" flashrange="900" flashduration="0.1"
+                   ignorecover="true">
+          <Affliction identifier="stun" strength="10" />
+        </Explosion>
+      </StatusEffect>
+      <StatusEffect type="OnNotContained" target="This" delay="1">
+        <Remove />
+      </StatusEffect>
+    </Projectile>
+  </Item>
+  <!-- ============================ 电弧帷幕弹药箱（占位数值，可再调） ============================ -->
+  <Item name="电弧帷幕弹药箱" description="一箱六发。里面是几组被封在玻璃管里的残余电荷，落地后会自行摊开，把一小片水域烧成货真价实的雷区。" identifier="arccannonammobox2" scale="0.5" tags="arccannonequipment,arccannonammo2,ammobox" category="Weapon" linkable="true" impactsoundtag="impact_metal_heavy" cargocontaineridentifier="">
+    <PreferredContainer primary="arccannonammosource" amount="1" mincondition="1" />
+    <PreferredContainer primary="ammoboxcontainer" mincondition="1" />
+    <Price baseprice="1200" minavailable="1" displaynonempty="true">
+      <Price storeidentifier="merchantoutpost" multiplier="1.5" sold="false" />
+      <Price storeidentifier="merchantcity" multiplier="1.4" sold="false" />
+      <Price storeidentifier="merchantresearch" multiplier="1.3" sold="false" />
+      <Price storeidentifier="merchantmilitary" multiplier="0.9" minavailable="1" />
+      <Price storeidentifier="merchantmine" multiplier="1.2" sold="false" />
+      <Price storeidentifier="merchantarmory" multiplier="0.9" minavailable="1" />
+    </Price>
+    <Deconstruct time="15">
+      <Item identifier="aluminium" />
+      <Item identifier="copper" />
+      <Item identifier="dementonite" mincondition="0.99" />
+      <Item identifier="zinc" mincondition="0.99" />
+    </Deconstruct>
+    <Fabricate suitablefabricators="fabricator" requiredtime="25">
+      <RequiredSkill identifier="weapons" level="45" />
+      <RequiredItem identifier="dementonite" />
+      <RequiredItem identifier="copper" amount="3" />
+      <RequiredItem identifier="zinc" amount="2" />
+      <RequiredItem identifier="aluminium" />
+    </Fabricate>
+    <Fabricate suitablefabricators="fabricator" displayname="recycleitem" requiredtime="15">
+      <RequiredSkill identifier="weapons" level="40" />
+      <RequiredItem identifier="dementonite" />
+      <RequiredItem identifier="copper" amount="3" />
+      <RequiredItem identifier="zinc" amount="2" />
+      <RequiredItem tag="ammobox" mincondition="0.0" maxcondition="0.1" usecondition="false" description="fabricationdescription.ammoboxrecycle" header="fabricationheader.ammoboxrecycle" defaultitem="arccannonammobox2" />
+    </Fabricate>
+    <Sprite texture="%ModDir%/img/ammoboxarc_purple.png" depth="0.54" sourcerect="0,0,100,80" origin="0.5,0.5" color="255,255,255,255" />
+    <Body width="90" height="72" density="30" />
+    <Holdable canbecombined="true" removeoncombined="false" slots="RightHand,LeftHand" holdpos="0,-30" handle1="0,-30" aimable="false" msg="ItemMsgPickUpSelect">
+      <StatValue stattype="MovementSpeed" value="-0.2" />
+    </Holdable>
+    <ItemContainer hideitems="true" capacity="1" drawinventory="false" canbeselected="false" canbecombined="true" ShowConditionInContainedStateIndicator="true" removecontaineditemsondeconstruct="true" containedstateindicatorstyle="bullet">
+      <!-- 二十二发：满耐久 100 → 每发 -4.545（100 ÷ 22） -->
+      <StatusEffect type="OnUse" target="This" disabledeltatime="true">
+        <SpawnItem identifiers="arccannonbolt2" spawnposition="ThisInventory" />
+        <Conditional condition="gt 0" />
+      </StatusEffect>
+      <StatusEffect type="OnUse" target="This" condition="-4.545" disabledeltatime="true">
+        <RequiredItem items="arccannonbolt2" type="Contained" />
+      </StatusEffect>
+      <Containable items="arccannonbolt2" />
+    </ItemContainer>
+  </Item>
+</Items>
